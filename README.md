@@ -3,6 +3,7 @@
 [![Laravel 11](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=flat&logo=laravel)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2%20%7C%208.3-777BB4?style=flat&logo=php)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?style=flat&logo=mysql)](https://mysql.com)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](docker-compose.yml)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v3.x-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -70,24 +71,92 @@ The database seeder includes 3 ready-to-test accounts:
 
 ## Installation & Setup Guide
 
-### Prerequisites
-* **PHP**: `>= 8.2` (tested with PHP 8.2 and 8.3)
-* **MySQL**: `>= 8.0` (or MariaDB in XAMPP)
-* **Composer**: `>= 2.x`
-* **Apache / Nginx** (e.g. XAMPP on port 80)
+### Option A: Docker Setup & Quickstart (Recommended)
 
-### 1. Clone the Repository
+Running with Docker Compose is the easiest way to spin up the complete environment (PHP 8.3-FPM, Nginx, and MySQL 8.0) without needing local PHP, Composer, Node, or MySQL installations.
+
+#### 1. Prerequisites
+* **Docker Desktop** installed and running on your machine.
+
+#### 2. Clone the Repository
 ```bash
 git clone https://github.com/webotapp-academy/physio-therapy-software.git physio
 cd physio
 ```
 
-### 2. Install PHP Dependencies
+#### 3. Configure Environment
+Copy the pre-configured Docker environment template:
 ```bash
-composer install
+cp .env.docker.example .env
 ```
 
-### 3. Environment Configuration
+#### 4. Build and Launch Containers
+```bash
+docker compose up -d --build
+```
+This builds the application image (including compiling Vite frontend assets), launches PHP-FPM, starts Nginx, and spins up the MySQL container with automatic health checking.
+
+#### 5. Initialize Application & Seed Sample Data
+Once the containers are running:
+```bash
+# Generate encryption key
+docker compose exec app php artisan key:generate
+
+# Run database migrations and seed default users, packages, services & exercises
+docker compose exec app php artisan migrate --seed
+```
+
+#### 6. Access the Application
+Open your browser at:
+```
+http://localhost:8000
+```
+Log in using any of the [Demo Accounts](#demo-accounts--default-roles) (e.g., `admin@physio.local` / `admin123`).
+
+#### Useful Docker Commands
+* **View Container Logs**:
+  ```bash
+  docker compose logs -f
+  ```
+* **Run Tests inside Docker**:
+  ```bash
+  docker compose exec app php artisan test
+  ```
+* **Access Application Shell**:
+  ```bash
+  docker compose exec app sh
+  ```
+* **Stop Containers**:
+  ```bash
+  docker compose down
+  ```
+  *(To remove database volumes as well, append `-v`: `docker compose down -v`)*
+
+---
+
+### Option B: Manual Local Setup (XAMPP / Native)
+
+#### Prerequisites
+* **PHP**: `>= 8.2` (tested with PHP 8.2 and 8.3)
+* **MySQL**: `>= 8.0` (or MariaDB in XAMPP)
+* **Composer**: `>= 2.x`
+* **Node.js**: `>= 20.x` & **npm**
+* **Apache / Nginx** (e.g. XAMPP on port 80)
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/webotapp-academy/physio-therapy-software.git physio
+cd physio
+```
+
+#### 2. Install Dependencies & Build Frontend
+```bash
+composer install
+npm install
+npm run build
+```
+
+#### 3. Environment Configuration
 Copy `.env.example` to `.env` and generate the application key:
 ```bash
 cp .env.example .env
@@ -104,19 +173,19 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-### 4. Run Migrations & Seed Sample Data
+#### 4. Run Migrations & Seed Sample Data
 Execute the database migrations and seed default services, packages, demo users, exercises, and sample patients:
 ```bash
 php artisan migrate --seed
 ```
 
-### 5. Storage Directory Permissions
+#### 5. Storage Directory Permissions
 Ensure Laravel storage and cache directories are writable by the web server:
 ```bash
-chmod -R 777 storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 ```
 
-### 6. Run the Application
+#### 6. Run the Application
 * **Under XAMPP / Apache**: Place the folder in your `htdocs/physio` and browse to:
   ```
   http://localhost/physio/public/
